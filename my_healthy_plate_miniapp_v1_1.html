@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Healthy Plate Mini-App</title>
+<style>
+:root{
+  --green:#2f7d35;
+  --green-2:#5cab51;
+  --green-soft:#eaf6e7;
+  --orange:#f2aa3e;
+  --orange-soft:#fff2cf;
+  --blue:#43a6c9;
+  --blue-soft:#e8f6fb;
+  --red:#d65345;
+  --purple:#6d6ccf;
+  --ink:#24343b;
+  --muted:#687a81;
+  --line:#dfe8eb;
+  --paper:#ffffff;
+  --bg:#f7fbfc;
+  --shadow:0 18px 42px rgba(35,54,61,.14);
+  --radius:26px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI","Trebuchet MS",sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 8% 5%,#fff0b9 0 120px,transparent 121px),
+    radial-gradient(circle at 92% 4%,#def3df 0 150px,transparent 151px),
+    linear-gradient(135deg,#f8fbff,#fff8ec);
+}
+button,input,textarea,select{font:inherit}
+button{touch-action:manipulation}
+.hidden{display:none!important}
+
+.app-shell{
+  width:min(1180px,95vw);
+  margin:18px auto 40px;
+  display:grid;
+  grid-template-columns:250px 1fr;
+  gap:20px;
+  align-items:start;
+}
+.sidebar,.app-card{
+  background:rgba(255,255,255,.97);
+  border:1px solid rgba(76,102,110,.12);
+  box-shadow:var(--shadow);
+  border-radius:var(--radius);
+}
+.sidebar{
+  padding:16px;
+  position:sticky;
+  top:14px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:14px;
+}
+.brand-icon{
+  width:44px;height:44px;
+  display:grid;place-items:center;
+  background:var(--green-soft);
+  border-radius:14px;
+  font-size:1.5rem;
+}
+.brand h1{
+  font-size:1.05rem;
+  margin:0;
+  line-height:1.15;
+}
+.brand small{color:var(--muted)}
+.mode-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  background:#f4f7ff;
+  border-radius:14px;
+  padding:10px 12px;
+  margin:10px 0 14px;
+}
+.switch{
+  position:relative;
+  width:48px;height:28px;
+  flex:0 0 auto;
+}
+.switch input{opacity:0;width:0;height:0}
+.slider{
+  position:absolute;inset:0;
+  border-radius:999px;
+  background:#ccd6dc;
+  cursor:pointer;
+  transition:.2s;
+}
+.slider::before{
+  content:"";
+  position:absolute;
+  width:22px;height:22px;
+  left:3px;top:3px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+  transition:.2s;
+}
+.switch input:checked + .slider{background:var(--purple)}
+.switch input:checked + .slider::before{transform:translateX(20px)}
+.nav-title{
+  margin:12px 0 8px;
+  font-size:.82rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--muted);
+  font-weight:900;
+}
+.nav-btn{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  background:#f2f6f7;
+  padding:12px;
+  margin:5px 0;
+  text-align:left;
+  color:#38515a;
+  font-weight:850;
+  cursor:pointer;
+  transition:.18s;
+}
+.nav-btn.active{background:var(--green);color:#fff}
+.nav-btn.done::after{content:"✓";float:right}
+.progress{
+  height:10px;background:#e6edef;border-radius:999px;overflow:hidden;margin-top:14px
+}
+.progress span{
+  display:block;height:100%;width:0;
+  background:linear-gradient(90deg,var(--green-2),#86cc7b);
+  transition:.3s;
+}
+.progress-text{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:.84rem;
+  font-weight:800;
+}
+.app-card{
+  min-height:730px;
+  padding:22px;
+  overflow:hidden;
+}
+.screen{display:none;animation:fade .25s ease}
+.screen.active{display:block}
+@keyframes fade{from{opacity:.25;transform:translateY(6px)}to{opacity:1;transform:none}}
+.screen-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:14px;
+  margin-bottom:18px;
+}
+.screen-head h2{
+  margin:0;
+  font-size:clamp(1.65rem,3vw,2.35rem);
+  letter-spacing:-.025em;
+}
+.screen-head p{margin:7px 0 0;color:var(--muted);line-height:1.5}
+.time-chip{
+  background:var(--green-soft);
+  color:var(--green);
+  border-radius:999px;
+  padding:9px 13px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.hero{
+  display:grid;
+  grid-template-columns:1.08fr .92fr;
+  gap:18px;
+  align-items:stretch;
+}
+.hero-panel{
+  background:#f6faf7;
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:20px;
+}
+.hero-panel h3{margin-top:0}
+.hero-panel ul{line-height:1.75;padding-left:22px}
+.hero-visual{
+  border-radius:22px;
+  padding:24px;
+  background:linear-gradient(145deg,#f8fff4,#fff8e8);
+  display:grid;
+  place-items:center;
+  text-align:center;
+  min-height:280px;
+}
+.hero-visual .big{font-size:5rem}
+.hero-visual h3{margin:10px 0 4px}
+.hero-visual p{margin:0;color:var(--muted)}
+.actions{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:20px;
+}
+.btn{
+  border:0;
+  border-radius:999px;
+  padding:12px 18px;
+  font-weight:900;
+  cursor:pointer;
+}
+.btn.primary{background:var(--green);color:#fff}
+.btn.secondary{background:#e8eff1;color:#29434d}
+.btn.ghost{background:#fff;border:2px solid var(--line);color:#38515a}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.teacher-note{
+  margin-top:16px;
+  border-left:6px solid var(--purple);
+  background:#f1f3ff;
+  border-radius:16px;
+  overflow:hidden;
+}
+.teacher-note summary{
+  list-style:none;
+  cursor:pointer;
+  padding:14px 16px;
+  font-weight:900;
+  color:#45459b;
+}
+.teacher-note summary::-webkit-details-marker{display:none}
+.teacher-body{padding:0 16px 15px;line-height:1.5;color:#47506a}
+.teacher-note:not(.visible){display:none}
+
+.plate-stage{
+  display:grid;
+  place-items:center;
+  margin-top:8px;
+}
+.plate{
+  width:min(540px,86vw);
+  aspect-ratio:1;
+  border-radius:50%;
+  border:15px solid #fff;
+  box-shadow:0 16px 30px rgba(31,50,57,.17),inset 0 0 0 2px #d4dbd4;
+  overflow:hidden;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+}
+.plate-section{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:8px;
+  cursor:pointer;
+  font-weight:900;
+  transition:.18s;
+}
+.plate-section:hover,.plate-section:focus-visible{filter:brightness(1.08)}
+.plate-label{
+  width:78%;
+  background:rgba(255,255,255,.9);
+  border-radius:15px;
+  padding:8px;
+  line-height:1.08;
+  font-size:clamp(.78rem,1.8vw,1.05rem);
+}
+.plate-label .fraction{display:block;font-size:1.15em;margin-bottom:3px}
+#grain{
+  grid-column:1;grid-row:1;
+  background:linear-gradient(145deg,#ffd775,#eda13c);
+  border-bottom:5px solid #fff;
+}
+#meat{
+  grid-column:1;grid-row:2;
+  background:linear-gradient(145deg,#83d0e9,#3ca0c6);
+}
+#produce{
+  grid-column:2;grid-row:1/3;
+  background:linear-gradient(145deg,#8ad275,#58aa50);
+  border-left:5px solid #fff;
+}
+.guideline-row{
+  width:min(540px,86vw);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin:10px auto 0;
+}
+.guideline-btn{
+  border:0;
+  border-radius:14px;
+  padding:10px 6px;
+  background:#f7fafb;
+  box-shadow:0 5px 12px rgba(35,55,62,.09);
+  font-weight:900;
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+}
+.guideline-btn:nth-child(1){border-top:5px solid var(--blue)}
+.guideline-btn:nth-child(2){border-top:5px solid var(--orange)}
+.guideline-btn:nth-child(3){border-top:5px solid var(--red)}
+.guideline-btn span:first-child{font-size:1.35rem}
+.info-panel{
+  margin:18px auto 0;
+  width:min(820px,100%);
+  background:var(--orange-soft);
+  border:2px solid #efc45e;
+  border-radius:22px;
+  padding:18px;
+  color:#604b0e;
+  box-shadow:0 14px 28px rgba(120,88,15,.14);
+}
+.info-panel[hidden]{display:none}
+.info-head{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:12px;
+  align-items:start;
+}
+.info-icon{
+  width:48px;height:48px;
+  border-radius:50%;
+  display:grid;place-items:center;
+  background:#fff9e7;
+  font-size:1.55rem;
+}
+.info-head h3{margin:0;color:#58440d}
+.info-head p{margin:4px 0 0;font-weight:800;color:#7a641f}
+.close-btn{
+  border:0;background:#fff;width:36px;height:36px;border-radius:50%;
+  font-size:1.3rem;font-weight:900;cursor:pointer;
+}
+.info-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-top:14px;
+}
+.info-grid>div{
+  background:rgba(255,255,255,.75);
+  border-radius:15px;
+  padding:13px;
+}
+.info-grid b{display:block;margin-bottom:5px}
+.info-grid p{margin:0;line-height:1.45}
+
+.memory-strip{
+  background:#fff6d9;
+  border-radius:18px;
+  padding:16px;
+  text-align:center;
+  font-size:1.08rem;
+  font-weight:900;
+  margin:12px 0 16px;
+}
+.learn-card{
+  border:1px solid var(--line);
+  background:#fbfdfd;
+  border-radius:20px;
+  padding:17px;
+  margin:12px 0;
+}
+.learn-card h3{margin-top:0}
+.reveal-answer{
+  margin-top:12px;
+  background:#eef8f0;
+  border:2px solid #b9dcb9;
+  border-radius:15px;
+  padding:14px;
+  line-height:1.5;
+}
+.reveal-answer[hidden]{display:none}
+.reflection-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+.reflection-btn{
+  border:2px solid var(--line);
+  border-radius:15px;
+  padding:13px;
+  background:#fff;
+  text-align:left;
+  font-weight:850;
+  cursor:pointer;
+}
+.reflection-btn.selected{
+  border-color:var(--green);
+  background:var(--green-soft);
+}
+.encouragement{
+  margin-top:12px;
+  background:var(--green-soft);
+  color:#245b28;
+  border-radius:14px;
+  padding:13px;
+  font-weight:800;
+}
+.encouragement[hidden]{display:none}
+
+.analysis-layout{
+  display:grid;
+  grid-template-columns:.88fr 1.12fr;
+  gap:16px;
+  align-items:start;
+}
+.meal-card{
+  background:#fff7df;
+  border-radius:22px;
+  padding:20px;
+  text-align:center;
+}
+.meal-card .emoji{font-size:3.2rem;line-height:1.35}
+.meal-card h3{margin:8px 0}
+.meal-card p{color:#5e6e74;line-height:1.5}
+.analysis-list{display:grid;gap:10px}
+.analysis-row{
+  display:grid;
+  grid-template-columns:1fr 175px;
+  gap:12px;
+  align-items:center;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:15px;
+  padding:12px;
+}
+.analysis-row small{color:var(--muted)}
+select{
+  width:100%;
+  border:2px solid var(--line);
+  border-radius:12px;
+  padding:9px;
+  font-weight:800;
+  background:#fff;
+}
+select.correct{border-color:var(--green);background:#e6f6e3}
+select.wrong{border-color:var(--red);background:#ffe8e3}
+textarea{
+  width:100%;
+  min-height:96px;
+  border:2px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+  resize:vertical;
+}
+.feedback{
+  margin-top:14px;
+  min-height:54px;
+  border-radius:15px;
+  padding:12px 14px;
+  background:#fff6d9;
+  color:#6b540f;
+  font-weight:800;
+  line-height:1.45;
+}
+.improvement-panel{
+  margin-top:14px;
+  background:#eef8f0;
+  border:2px solid #b9dcb9;
+  border-radius:18px;
+  padding:15px;
+}
+.improvement-panel[hidden]{display:none}
+.improvement-panel h3{margin:0 0 10px;color:var(--green)}
+.improvement-panel ul{margin:8px 0 0;padding-left:22px;line-height:1.55}
+.improvement-panel li{margin:8px 0}
+
+.question-card{
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:15px;
+  background:#fbfdfd;
+  margin:12px 0;
+}
+.question{
+  font-weight:900;
+  margin-bottom:10px;
+  line-height:1.4;
+}
+.options{display:grid;gap:8px}
+.option{
+  border:2px solid var(--line);
+  border-radius:13px;
+  padding:11px 13px;
+  background:#fff;
+  text-align:left;
+  font-weight:800;
+  cursor:pointer;
+}
+.option.selected{border-color:#315865;background:#edf7fa}
+.option.correct{border-color:var(--green);background:#e6f6e3}
+.option.wrong{border-color:var(--red);background:#ffe8e3}
+.answer-panel{
+  margin-top:14px;
+  background:#eef8f0;
+  border:2px solid #b9dcb9;
+  border-radius:18px;
+  padding:15px;
+}
+.answer-panel[hidden]{display:none}
+.answer-block{
+  background:#fff;
+  border-radius:14px;
+  padding:13px;
+  margin:9px 0;
+}
+.answer-block p{margin:6px 0 0;line-height:1.5;color:#4f646c}
+
+.summary{text-align:center;padding:26px 10px}
+.summary .big{font-size:4.2rem}
+.summary h2{font-size:2.1rem;margin:8px 0}
+.summary p{color:var(--muted);line-height:1.5}
+.score-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  max-width:620px;
+  margin:20px auto;
+}
+.score-grid div{
+  background:#f5faf6;
+  border-radius:16px;
+  padding:16px;
+  font-weight:850;
+}
+
+@media(max-width:900px){
+  .app-shell{grid-template-columns:1fr}
+  .sidebar{position:static}
+  .hero,.analysis-layout{grid-template-columns:1fr}
+  .info-grid{grid-template-columns:1fr}
+  .reflection-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:560px){
+  .app-card{padding:15px}
+  .screen-head{flex-direction:column}
+  .plate{border-width:9px}
+  .plate-section{padding:4px}
+  .plate-label{width:86%;padding:5px;font-size:.68rem}
+  .guideline-row{width:min(500px,88vw);gap:5px}
+  .guideline-btn{padding:7px 4px;font-size:.64rem}
+  .analysis-row{grid-template-columns:1fr}
+  .reflection-grid{grid-template-columns:1fr}
+  .score-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🥗</div>
+      <div>
+        <h1>My Healthy Plate</h1>
+        <small>Mini-App Lesson</small>
+      </div>
+    </div>
+
+    <div class="mode-row">
+      <div>
+        <b>Teacher Mode</b><br>
+        <small>Show prompts and notes</small>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="teacherToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="nav-title">Lesson</div>
+    <button class="nav-btn active" data-step="1">1. Welcome</button>
+    <button class="nav-btn" data-step="2">2. Learn</button>
+    <button class="nav-btn" data-step="3">3. Explore</button>
+    <button class="nav-btn" data-step="4">4. Analyse</button>
+    <button class="nav-btn" data-step="5">5. Exit Ticket</button>
+
+    <div class="progress"><span id="progressBar"></span></div>
+    <div class="progress-text" id="progressText">Step 1 of 5</div>
+  </aside>
+
+  <main class="app-card">
+
+    <section class="screen active" data-screen="1">
+      <div class="screen-head">
+        <div>
+          <h2>Welcome to My Healthy Plate</h2>
+          <p>Learn the plate model, explore healthy habits, analyse a meal and complete a short exit ticket.</p>
+        </div>
+        <div class="time-chip">25–30 minutes</div>
+      </div>
+
+      <div class="hero">
+        <div class="hero-panel">
+          <h3>Learning Goals</h3>
+          <ul>
+            <li>Name the three food groups.</li>
+            <li>Explain the ½–¼–¼ plate model.</li>
+            <li>Describe Choose Water, Use Healthier Oils and Be Active.</li>
+            <li>Analyse a meal and suggest improvements.</li>
+          </ul>
+        </div>
+        <div class="hero-visual">
+          <div>
+            <div class="big">🍽️</div>
+            <h3>Eat Well. Be Active.</h3>
+            <p>Use proportions and healthier choices to build balanced meals.</p>
+          </div>
+        </div>
+      </div>
+
+      <details class="teacher-note">
+        <summary>👩‍🏫 Teacher Prompt</summary>
+        <div class="teacher-body">
+          Ask students to think of one meal they ate recently. Invite them to predict whether it followed the My Healthy Plate model.
+        </div>
+      </details>
+
+      <div class="actions">
+        <span></span>
+        <button class="btn primary" id="startBtn">Start Lesson</button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="2">
+      <div class="screen-head">
+        <div>
+          <h2>Learn My Healthy Plate</h2>
+          <p>Tap any food group or supporting guideline to open its explanation.</p>
+        </div>
+        <div class="time-chip">8 minutes</div>
+      </div>
+
+      <div class="plate-stage">
+        <div>
+          <div class="plate">
+            <button class="plate-section" id="grain" data-info="grain">
+              <span class="plate-label"><span class="fraction">¼</span>Brown Rice &amp;<br>Wholemeal Bread</span>
+            </button>
+            <button class="plate-section" id="meat" data-info="meat">
+              <span class="plate-label"><span class="fraction">¼</span>Meat &amp; Others</span>
+            </button>
+            <button class="plate-section" id="produce" data-info="produce">
+              <span class="plate-label"><span class="fraction">½</span>Fruit &amp;<br>Vegetables</span>
+            </button>
+          </div>
+
+          <div class="guideline-row">
+            <button class="guideline-btn" data-info="water"><span>💧</span><span>Choose Water</span></button>
+            <button class="guideline-btn" data-info="oils"><span>🫒</span><span>Use Healthier Oils</span></button>
+            <button class="guideline-btn" data-info="active"><span>🏃</span><span>Be Active</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-panel" id="infoPanel" hidden>
+        <div class="info-head">
+          <div class="info-icon" id="infoIcon">ℹ️</div>
+          <div>
+            <h3 id="infoTitle"></h3>
+            <p id="infoRole"></p>
+          </div>
+          <button class="close-btn" id="closeInfo" aria-label="Close information">×</button>
+        </div>
+        <div class="info-grid">
+          <div><b id="infoLabelA">Examples</b><p id="infoA"></p></div>
+          <div><b id="infoLabelB">Why it matters</b><p id="infoB"></p></div>
+          <div><b id="infoLabelC">Healthier choices</b><p id="infoC"></p></div>
+        </div>
+      </div>
+
+      <details class="teacher-note">
+        <summary>👩‍🏫 Teacher Prompt</summary>
+        <div class="teacher-body">
+          Ask which plate section is largest and why. Then ask students how the three supporting guidelines complement the food groups.
+        </div>
+      </details>
+
+      <div class="actions">
+        <button class="btn secondary backBtn">Back</button>
+        <button class="btn primary nextBtn">Continue</button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="3">
+      <div class="screen-head">
+        <div>
+          <h2>Explore the Model</h2>
+          <p>This is a teaching and discussion stage. There are no marks.</p>
+        </div>
+        <div class="time-chip">6 minutes</div>
+      </div>
+
+      <div class="memory-strip">½ Fruit & Vegetables · ¼ Brown Rice & Wholemeal Bread · ¼ Meat & Others</div>
+
+      <div class="learn-card">
+        <h3>Think–Pair–Share</h3>
+        <p><b>Why do Fruit & Vegetables occupy the largest section?</b></p>
+        <button class="btn primary revealBtn" data-target="produceAnswer">Reveal Suggested Answer</button>
+        <div class="reveal-answer" id="produceAnswer" hidden>
+          Fruit and vegetables provide dietary fibre, vitamins, minerals and protective plant compounds. Making them the largest part of the meal helps create a more nutrient-rich and balanced plate.
+        </div>
+      </div>
+
+      <div class="learn-card">
+        <h3>Personal Reflection</h3>
+        <p><b>Thinking back to the three guidelines, which healthy habit do you already practise?</b></p>
+        <div class="reflection-grid">
+          <button class="reflection-btn" data-message="Great. Continue choosing water whenever possible.">💧 I usually choose water.</button>
+          <button class="reflection-btn" data-message="Excellent. Continue using healthier oils in moderation.">🫒 I use healthier oils.</button>
+          <button class="reflection-btn" data-message="Fantastic. Staying active supports lifelong health.">🏃 I am physically active.</button>
+          <button class="reflection-btn" data-message="That is okay. Choose one healthy habit to improve this week.">🌱 I need to improve all three.</button>
+        </div>
+        <div class="encouragement" id="reflectionFeedback" hidden></div>
+      </div>
+
+      <details class="teacher-note">
+        <summary>👩‍🏫 Teacher Prompt</summary>
+        <div class="teacher-body">
+          Invite two or three students to apply the ½–¼–¼ model to a meal they commonly eat. Ask what they would keep and what they would change.
+        </div>
+      </details>
+
+      <div class="actions">
+        <button class="btn secondary backBtn">Back</button>
+        <button class="btn primary nextBtn">Continue to Meal Analysis</button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="4">
+      <div class="screen-head">
+        <div>
+          <h2>Meal Analysis</h2>
+          <p>Analyse the meal using the plate proportions and supporting guidelines.</p>
+        </div>
+        <div class="time-chip">8 minutes</div>
+      </div>
+
+      <div class="analysis-layout">
+        <div class="meal-card">
+          <div class="emoji">🍚 🍗 🥒 🥤</div>
+          <h3>Chicken Rice Set</h3>
+          <p>A large serving of white rice, roasted chicken with skin, a few cucumber slices and a sweetened drink.</p>
+        </div>
+
+        <div class="analysis-list">
+          <div class="analysis-row">
+            <span><b>Fruit &amp; Vegetables</b><br><small>Is the proportion suitable?</small></span>
+            <select data-answer="too little">
+              <option value="">Choose</option>
+              <option value="balanced">Balanced</option>
+              <option value="too little">Too little</option>
+            </select>
+          </div>
+
+          <div class="analysis-row">
+            <span><b>Brown Rice &amp; Wholemeal Bread</b><br><small>Is white rice the best choice?</small></span>
+            <select data-answer="needs improvement">
+              <option value="">Choose</option>
+              <option value="good choice">Good choice</option>
+              <option value="needs improvement">Needs improvement</option>
+            </select>
+          </div>
+
+          <div class="analysis-row">
+            <span><b>Meat &amp; Others</b><br><small>Is chicken with skin the healthiest option?</small></span>
+            <select data-answer="needs improvement">
+              <option value="">Choose</option>
+              <option value="good choice">Good choice</option>
+              <option value="needs improvement">Needs improvement</option>
+            </select>
+          </div>
+
+          <div class="analysis-row">
+            <span><b>Drink</b><br><small>Does it follow the recommendation?</small></span>
+            <select data-answer="needs improvement">
+              <option value="">Choose</option>
+              <option value="good choice">Good choice</option>
+              <option value="needs improvement">Needs improvement</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="learn-card">
+        <h3>Recommend at least two improvements</h3>
+        <textarea id="mealAdvice" placeholder="Write one improvement on each line.&#10;Example: Add more vegetables.&#10;Replace the sweetened drink with water."></textarea>
+      </div>
+
+      <div class="improvement-panel" id="improvementPanel" hidden>
+        <h3>Suggested improvements</h3>
+        <ul>
+          <li><b>Add more vegetables:</b> a few cucumber slices are not enough to make up half the plate.</li>
+          <li><b>Choose brown rice:</b> this increases wholegrain intake and provides more fibre than white rice.</li>
+          <li><b>Choose skinless chicken:</b> removing the skin reduces the fat content of the meal.</li>
+          <li><b>Replace the sweetened drink with water:</b> this reduces added sugar and supports hydration.</li>
+        </ul>
+      </div>
+
+      <div class="feedback" id="analysisFeedback">Complete all four judgements and write two specific recommendations.</div>
+
+      <details class="teacher-note">
+        <summary>👩‍🏫 Teacher Prompt</summary>
+        <div class="teacher-body">
+          Ask students to justify each judgement using the plate proportions, food choice, preparation method and drink guideline.
+        </div>
+      </details>
+
+      <div class="actions">
+        <button class="btn secondary backBtn">Back</button>
+        <button class="btn primary" id="checkAnalysisBtn">Check Analysis</button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="5">
+      <div class="screen-head">
+        <div>
+          <h2>Exit Ticket</h2>
+          <p>Complete the final three questions independently.</p>
+        </div>
+        <div class="time-chip">5 minutes</div>
+      </div>
+
+      <div class="question-card mcq" data-answer="Fruit & Vegetables">
+        <div class="question">1. Which group should occupy half the plate?</div>
+        <div class="options">
+          <button class="option">Fruit & Vegetables</button>
+          <button class="option">Meat & Others</button>
+          <button class="option">Brown Rice & Wholemeal Bread</button>
+        </div>
+      </div>
+
+      <div class="question-card mcq" data-answer="Use healthier oils in moderation.">
+        <div class="question">2. Which statement best follows the cooking-oil guideline?</div>
+        <div class="options">
+          <button class="option">Use healthier oils in moderation.</button>
+          <button class="option">Deep-fry food at every meal.</button>
+          <button class="option">Use as much oil as possible.</button>
+        </div>
+      </div>
+
+      <div class="question-card mcq" data-answer="Add more vegetables, choose brown rice and replace the drink with water.">
+        <div class="question">3. What is the best improvement to the chicken rice set?</div>
+        <div class="options">
+          <button class="option">Add more vegetables, choose brown rice and replace the drink with water.</button>
+          <button class="option">Add more white rice and keep the sweetened drink.</button>
+          <button class="option">Remove the cucumber and add more sauce.</button>
+        </div>
+      </div>
+
+      <div class="answer-panel" id="exitAnswers" hidden>
+        <div class="answer-block">
+          <b>1. Fruit & Vegetables</b>
+          <p>They occupy half the plate because they provide fibre, vitamins, minerals and protective plant compounds.</p>
+        </div>
+        <div class="answer-block">
+          <b>2. Use healthier oils in moderation.</b>
+          <p>The type and amount of oil both matter. Healthier oils should still be used in sensible amounts.</p>
+        </div>
+        <div class="answer-block">
+          <b>3. Add more vegetables, choose brown rice and replace the drink with water.</b>
+          <p>This improves the plate proportions, increases wholegrain intake and reduces added sugar.</p>
+        </div>
+      </div>
+
+      <div class="feedback" id="exitFeedback">Answer all three questions.</div>
+
+      <div class="actions">
+        <button class="btn secondary backBtn">Back</button>
+        <button class="btn primary" id="submitExitBtn">Submit Exit Ticket</button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="6">
+      <div class="summary">
+        <div class="big" id="summaryEmoji">🏆</div>
+        <h2 id="summaryTitle">Lesson Complete</h2>
+        <p id="summaryText"></p>
+
+        <div class="score-grid">
+          <div><strong id="analysisScore">0 / 4</strong><br>Meal analysis</div>
+          <div><strong id="exitScore">0 / 3</strong><br>Exit ticket</div>
+        </div>
+
+        <div class="memory-strip">½ Fruit & Vegetables · ¼ Brown Rice & Wholemeal Bread · ¼ Meat & Others</div>
+
+        <div class="actions" style="justify-content:center">
+          <button class="btn primary" onclick="location.reload()">Restart Lesson</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+const screens=[...document.querySelectorAll('.screen')];
+const navButtons=[...document.querySelectorAll('.nav-btn')];
+const progressBar=document.getElementById('progressBar');
+const progressText=document.getElementById('progressText');
+
+let currentStep=1;
+let analysisScore=0;
+let exitScore=0;
+
+function showScreen(step){
+  currentStep=step;
+  screens.forEach(s=>s.classList.toggle('active',Number(s.dataset.screen)===step));
+  navButtons.forEach(btn=>{
+    const n=Number(btn.dataset.step);
+    btn.classList.toggle('active',n===step);
+    if(n<step)btn.classList.add('done');
+  });
+  const visible=Math.min(step,5);
+  progressBar.style.width=((visible-1)/4*100)+'%';
+  progressText.textContent=step<=5?`Step ${step} of 5`:'Lesson complete';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+document.getElementById('startBtn').addEventListener('click',()=>showScreen(2));
+document.querySelectorAll('.nextBtn').forEach(btn=>btn.addEventListener('click',()=>showScreen(Math.min(currentStep+1,5))));
+document.querySelectorAll('.backBtn').forEach(btn=>btn.addEventListener('click',()=>showScreen(Math.max(currentStep-1,1))));
+navButtons.forEach(btn=>btn.addEventListener('click',()=>showScreen(Number(btn.dataset.step))));
+
+const teacherToggle=document.getElementById('teacherToggle');
+function updateTeacherMode(){
+  document.querySelectorAll('.teacher-note').forEach(note=>note.classList.toggle('visible',teacherToggle.checked));
+}
+teacherToggle.addEventListener('change',updateTeacherMode);
+updateTeacherMode();
+
+const infoData={
+  grain:{
+    icon:'🌾',
+    title:'Brown Rice & Wholemeal Bread',
+    role:'¼ of the plate',
+    labels:['Examples','Why it matters','Healthier choices'],
+    a:'Brown rice, wholemeal bread, oats, chapati and wholegrain noodles.',
+    b:'Provides energy, dietary fibre, B-group vitamins and iron.',
+    c:'Choose wholegrain options more often than refined grains such as white rice or white bread.'
+  },
+  meat:{
+    icon:'🐟',
+    title:'Meat & Others',
+    role:'¼ of the plate',
+    labels:['Examples','Why it matters','Healthier choices'],
+    a:'Fish, lean meat, eggs, tofu, beans, lentils and lower-fat dairy foods.',
+    b:'Protein supports growth, repair and healthy muscles, bones, skin and nails.',
+    c:'Choose lean cuts, remove visible fat and poultry skin, and use lower-fat dairy products.'
+  },
+  produce:{
+    icon:'🥦',
+    title:'Fruit & Vegetables',
+    role:'½ of the plate',
+    labels:['Examples','Why it matters','Healthier choices'],
+    a:'Leafy vegetables, broccoli, carrots, tomatoes, apples, bananas and grapes.',
+    b:'Provides dietary fibre, vitamins, minerals and protective plant compounds.',
+    c:'Choose different colours, use less oil or dressing, and avoid adding sugar or syrup.'
+  },
+  water:{
+    icon:'💧',
+    title:'Choose Water',
+    role:'Supporting guideline',
+    labels:['What to do','Why it matters','Practical tip'],
+    a:'Drink plain water with meals and throughout the day.',
+    b:'Supports hydration without added sugar or extra calories.',
+    c:'Limit soft drinks, syrup drinks and other sweetened beverages.'
+  },
+  oils:{
+    icon:'🫒',
+    title:'Use Healthier Oils',
+    role:'Supporting guideline',
+    labels:['What to choose','Why it matters','Practical tip'],
+    a:'Choose oils such as canola, soybean, olive, sunflower or peanut oil.',
+    b:'The type and amount of fat used affects the healthfulness of a meal.',
+    c:'Use oil in moderation and limit deep-fried foods.'
+  },
+  active:{
+    icon:'🏃',
+    title:'Be Active',
+    role:'Supporting guideline',
+    labels:['What to do','Why it matters','Practical tip'],
+    a:'Sit less and move more through walking, cycling, sports or exercise.',
+    b:'Supports fitness, healthy body weight and long-term health.',
+    c:'Include regular moderate- to vigorous-intensity activity.'
+  }
+};
+
+function openInfo(key){
+  const data=infoData[key];
+  if(!data)return;
+  document.getElementById('infoIcon').textContent=data.icon;
+  document.getElementById('infoTitle').textContent=data.title;
+  document.getElementById('infoRole').textContent=data.role;
+  document.getElementById('infoLabelA').textContent=data.labels[0];
+  document.getElementById('infoLabelB').textContent=data.labels[1];
+  document.getElementById('infoLabelC').textContent=data.labels[2];
+  document.getElementById('infoA').textContent=data.a;
+  document.getElementById('infoB').textContent=data.b;
+  document.getElementById('infoC').textContent=data.c;
+  const panel=document.getElementById('infoPanel');
+  panel.hidden=false;
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+document.querySelectorAll('[data-info]').forEach(btn=>{
+  btn.addEventListener('click',()=>openInfo(btn.dataset.info));
+});
+document.getElementById('closeInfo').addEventListener('click',()=>document.getElementById('infoPanel').hidden=true);
+
+document.querySelectorAll('.revealBtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const target=document.getElementById(btn.dataset.target);
+    target.hidden=!target.hidden;
+    btn.textContent=target.hidden?'Reveal Suggested Answer':'Hide Suggested Answer';
+  });
+});
+
+document.querySelectorAll('.reflection-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.reflection-btn').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    const box=document.getElementById('reflectionFeedback');
+    box.textContent=btn.dataset.message;
+    box.hidden=false;
+  });
+});
+
+document.getElementById('checkAnalysisBtn').addEventListener('click',()=>{
+  const button=document.getElementById('checkAnalysisBtn');
+
+  if(button.dataset.checked==='true'){
+    showScreen(5);
+    return;
+  }
+
+  analysisScore=0;
+  const missing=[];
+  const labels=['Fruit & Vegetables','Brown Rice & Wholemeal Bread','Meat & Others','Drink'];
+
+  document.querySelectorAll('[data-screen="4"] select').forEach((select,index)=>{
+    select.classList.remove('correct','wrong');
+
+    if(!select.value){
+      missing.push(labels[index]);
+      select.classList.add('wrong');
+      return;
+    }
+
+    if(select.value===select.dataset.answer){
+      select.classList.add('correct');
+      analysisScore++;
+    }else{
+      select.classList.add('wrong');
+    }
+  });
+
+  const advice=document.getElementById('mealAdvice').value.trim();
+  const recommendations=advice
+    .split(/\n|[.;]+/)
+    .map(item=>item.trim())
+    .filter(item=>item.length>=3);
+
+  const feedback=document.getElementById('analysisFeedback');
+
+  if(missing.length || recommendations.length<2){
+    const messages=[];
+    if(missing.length){
+      messages.push('Complete: '+missing.join(', ')+'.');
+    }
+    if(recommendations.length<2){
+      messages.push('Write two separate, specific improvements, preferably one on each line.');
+    }
+
+    feedback.textContent=messages.join(' ');
+    feedback.style.background='#ffe5e0';
+    feedback.style.color='#8c2e1d';
+    feedback.scrollIntoView({behavior:'smooth',block:'nearest'});
+    return;
+  }
+
+  document.getElementById('improvementPanel').hidden=false;
+  feedback.textContent=`You scored ${analysisScore} out of 4 for the four judgements. Review the suggested improvements, then tap Continue to Exit Ticket.`;
+  feedback.style.background='#e8f7e4';
+  feedback.style.color='#245b28';
+
+  button.textContent='Continue to Exit Ticket';
+  button.dataset.checked='true';
+
+  document.getElementById('improvementPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+});
+
+document.querySelectorAll('.option').forEach(option=>{
+  option.addEventListener('click',()=>{
+    const card=option.closest('.mcq');
+    if(card.dataset.checked==='true')return;
+    card.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));
+    option.classList.add('selected');
+  });
+});
+
+document.getElementById('submitExitBtn').addEventListener('click',()=>{
+  const button=document.getElementById('submitExitBtn');
+
+  if(button.dataset.checked==='true'){
+    finishLesson();
+    return;
+  }
+
+  let complete=true;
+  exitScore=0;
+
+  document.querySelectorAll('[data-screen="5"] .mcq').forEach(card=>{
+    const selected=card.querySelector('.selected');
+    if(!selected){
+      complete=false;
+      return;
+    }
+
+    const answer=card.dataset.answer.toLowerCase();
+    card.querySelectorAll('.option').forEach(option=>{
+      option.classList.remove('correct','wrong');
+      if(option.textContent.trim().toLowerCase()===answer){
+        option.classList.add('correct');
+      }
+    });
+
+    if(selected.textContent.trim().toLowerCase()===answer){
+      exitScore++;
+    }else{
+      selected.classList.add('wrong');
+    }
+
+    card.dataset.checked='true';
+  });
+
+  const feedback=document.getElementById('exitFeedback');
+
+  if(!complete){
+    feedback.textContent='Answer all three questions first.';
+    feedback.style.background='#ffe5e0';
+    feedback.style.color='#8c2e1d';
+    return;
+  }
+
+  document.getElementById('exitAnswers').hidden=false;
+  feedback.textContent=`You scored ${exitScore} out of 3. Review the explanations, then finish the lesson.`;
+  feedback.style.background='#e8f7e4';
+  feedback.style.color='#245b28';
+  button.textContent='Finish Lesson';
+  button.dataset.checked='true';
+  document.getElementById('exitAnswers').scrollIntoView({behavior:'smooth',block:'nearest'});
+});
+
+function finishLesson(){
+  document.getElementById('analysisScore').textContent=`${analysisScore} / 4`;
+  document.getElementById('exitScore').textContent=`${exitScore} / 3`;
+
+  const total=analysisScore+exitScore;
+  const max=7;
+  const percent=Math.round(total/max*100);
+
+  let emoji='🌱';
+  let title='Review and Retry';
+  let text=`You scored ${total} out of ${max}. Review the plate proportions and supporting guidelines.`;
+
+  if(percent>=80){
+    emoji='🏆';
+    title='Balanced Meal Analyst';
+    text=`You scored ${total} out of ${max}. You can explain and apply My Healthy Plate confidently.`;
+  }else if(percent>=60){
+    emoji='⭐';
+    title='Good Progress';
+    text=`You scored ${total} out of ${max}. Review any incorrect responses before the class test.`;
+  }
+
+  document.getElementById('summaryEmoji').textContent=emoji;
+  document.getElementById('summaryTitle').textContent=title;
+  document.getElementById('summaryText').textContent=text;
+  showScreen(6);
+}
+</script>
+</body>
+</html>
